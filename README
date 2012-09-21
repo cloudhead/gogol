@@ -1,0 +1,36 @@
+
+
+        CRAYOLA
+
+        a bitmap drawing & animation library for Go.
+
+
+. synopsis
+
+    crayola's purpose is to provide a simple interface
+    for drawing bitmap graphics on the screen, as well
+    as handling mouse & keyboard events.
+
+    crayola is especially well suited for building 2D
+    games.
+
+. installation
+
+    go get github.com/cloudhead/crayola
+
+. documentation
+
+    go doc crayola
+
+. examples
+
+    see /examples folder
+
+. license
+
+    see LICENSE
+
+. copyright
+
+    Alexis Sellier <alexis@cloudhead.io>
+
