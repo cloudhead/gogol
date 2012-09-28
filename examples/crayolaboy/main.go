@@ -16,11 +16,13 @@ var (
 var speed float64 = 7
 
 type Cray struct {
-	width  int
-	height int
-	seq    *image.Sequence
-	title  string
-	scale  float32
+	width        int
+	height       int
+	seq          *image.Sequence
+	title        string
+	scale        float32
+	isMouseLDown bool
+	isMouseRDown bool
 }
 
 func (c *Cray) Ready() {
@@ -69,9 +71,25 @@ func (c *Cray) Title() string {
 	return c.title
 }
 
-func (c *Cray) Motion(w, h int)      {}
-func (c *Cray) Mouse(w, h, x, y int) {}
-func (c *Cray) Entry(e bool) {
+func (c *Cray) Motion(x, y int) {
+	s := float32(y) / float32(c.height) * 2
+	l := float32(x) / float32(c.width) * 2
+
+	if c.isMouseLDown {
+		crayola.AdjustHSL(s-1, l-1, 0)
+	}
+	if c.isMouseRDown {
+		crayola.AdjustExp(s, l)
+	}
+}
+
+func (c *Cray) Mouse(b crayola.Mouse, isDown bool, x, y int) {
+	switch b {
+	case crayola.MouseL:
+		c.isMouseLDown = isDown
+	case crayola.MouseR:
+		c.isMouseRDown = isDown
+	}
 }
 
 func main() {
@@ -81,6 +99,6 @@ func main() {
 	sprite := img.Sprite(16, 16)
 	seq := sprite.Sequence(0, -1)
 
-	handler := &Cray{seq: seq, title: *title, scale: 5}
+	handler := &Cray{seq: seq, title: *title, scale: 1}
 	crayola.Init(handler)
 }

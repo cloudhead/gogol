@@ -2,7 +2,9 @@
  * crayola
  * crayola.h
  */
-void init  (const char *title);
+void init       (const char *title);
+void adjustHSL  (float h, float s, float l);
+void adjustExp  (float, float);
 
 /*
  * go callback functions, defined in crayola.go

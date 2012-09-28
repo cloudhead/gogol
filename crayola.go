@@ -17,6 +17,14 @@ var (
 	lastTick = 0
 )
 
+type Mouse int
+
+const (
+	MouseL Mouse = 0
+	MouseM       = 1
+	MouseR       = 2
+)
+
 var handler Handler
 
 type Handler interface {
@@ -42,7 +50,7 @@ type Handler interface {
 	Keyboard(k Key, isDown bool)
 
 	// Mouse is called whenever the mouse is clicked.
-	Mouse(int, int, int, int)
+	Mouse(button Mouse, isDown bool, x, y int)
 
 	// Motion is called whenever the mouse is moved, with the x
 	// and y position of the cursor.
@@ -75,6 +83,19 @@ func Scale(x, y float32) {
 	if x > 0 && y > 0 {
 		C.glScalef(C.GLfloat(x), C.GLfloat(y), 1.0)
 	}
+}
+
+// AdjustHSL adjusts the scene's hue, saturation & lightness.
+// Values can range between 0 and 1.
+func AdjustHSL(h, s, l float32) {
+	C.adjustHSL(C.float(h), C.float(s), C.float(l))
+}
+
+// AdjustExp adjusts the scene's exposure. The first parameter
+// specifies the exposure (default is 1.0), the second specifies
+// the maximum brightness.
+func AdjustExp(exp, max float32) {
+	C.adjustExp(C.float(exp), C.float(max))
 }
 
 // ShowCursor shows the mouse cursor.
@@ -173,7 +194,7 @@ func goSpecialUp(k, _, _ C.int) {
 // goMouse is called when a mouse button is pressed or released.
 //
 func goMouse(button, state, x, y C.int) {
-	handler.Mouse(int(button), int(state), int(x), int(y))
+	handler.Mouse(Mouse(button), state == 0, int(x), int(y))
 }
 
 //export goMotion
