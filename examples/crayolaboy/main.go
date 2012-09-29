@@ -92,6 +92,8 @@ func (c *Cray) Mouse(b crayola.Mouse, isDown bool, x, y int) {
 	}
 }
 
+func (c *Cray) Entry(e bool) {}
+
 func main() {
 	flag.Parse()
 
