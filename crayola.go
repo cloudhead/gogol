@@ -1,4 +1,22 @@
-package crayola
+//
+// Package gogol provides an abstract interface over
+// bitmap graphic rendering and animation.
+//
+// Create an empty event handler and initialize gogol
+// with it:
+//
+//    handler := gogol.DefaultHandler{}
+//    gogol.Init(handler)
+//
+// Create an animation from a sprite, and draw the current
+// frame:
+//
+//    sprite := gogol.NewImage("goblin.bmp").Sprite(16, 16)
+//    animation := sprite.Sequence(0, -1)
+//    ...
+//    animation.DrawFrameAt(0, 0)
+//
+package gogol
 
 //
 // #include "crayola.h"

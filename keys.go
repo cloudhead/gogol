@@ -1,4 +1,4 @@
-package crayola
+package gogol
 
 //
 // #include <GL/glut.h>

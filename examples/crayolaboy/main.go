@@ -15,7 +15,7 @@ var (
 // Speed of play
 var speed float64 = 7
 
-type Cray struct {
+type Gogol struct {
 	width        int
 	height       int
 	seq          *image.Sequence
@@ -25,18 +25,18 @@ type Cray struct {
 	isMouseRDown bool
 }
 
-func (c *Cray) Ready() {
+func (c *Gogol) Ready() {
 	c.seq.Play(speed)
-	crayola.HideCursor()
-	crayola.FullScreen()
+	gogol.HideCursor()
+	gogol.FullScreen()
 }
 
-func (c *Cray) Reshape(w, h int) {
+func (c *Gogol) Reshape(w, h int) {
 	c.width, c.height = w, h
 }
 
-func (c *Cray) Display(delta time.Duration) {
-	crayola.Scale(c.scale, c.scale)
+func (c *Gogol) Display(delta time.Duration) {
+	gogol.Scale(c.scale, c.scale)
 
 	for x := 0; x <= c.width; x += 16 {
 		for y := 0; y <= c.height; y += 16 {
@@ -45,7 +45,7 @@ func (c *Cray) Display(delta time.Duration) {
 	}
 }
 
-func (c *Cray) Keyboard(key crayola.Key, isDown bool) {
+func (c *Gogol) Keyboard(key gogol.Key, isDown bool) {
 	if !isDown {
 		return
 	}
@@ -54,53 +54,53 @@ func (c *Cray) Keyboard(key crayola.Key, isDown bool) {
 		c.scale++
 	case ',':
 		c.scale--
-	case crayola.KeySpace:
+	case gogol.KeySpace:
 		c.seq.Toggle()
 
 		if c.seq.IsPlaying {
-			crayola.HideCursor()
+			gogol.HideCursor()
 		} else {
-			crayola.ShowCursor()
+			gogol.ShowCursor()
 		}
-	case crayola.KeyEsc:
+	case gogol.KeyEsc:
 		os.Exit(0)
 	}
 }
 
-func (c *Cray) Title() string {
+func (c *Gogol) Title() string {
 	return c.title
 }
 
-func (c *Cray) Motion(x, y int) {
+func (c *Gogol) Motion(x, y int) {
 	s := float32(y) / float32(c.height) * 2
 	l := float32(x) / float32(c.width) * 2
 
 	if c.isMouseLDown {
-		crayola.AdjustHSL(s-1, l-1, 0)
+		gogol.AdjustHSL(s-1, l-1, 0)
 	}
 	if c.isMouseRDown {
-		crayola.AdjustExp(s, l)
+		gogol.AdjustExp(s, l)
 	}
 }
 
-func (c *Cray) Mouse(b crayola.Mouse, isDown bool, x, y int) {
+func (c *Gogol) Mouse(b gogol.Mouse, isDown bool, x, y int) {
 	switch b {
-	case crayola.MouseL:
+	case gogol.MouseL:
 		c.isMouseLDown = isDown
-	case crayola.MouseR:
+	case gogol.MouseR:
 		c.isMouseRDown = isDown
 	}
 }
 
-func (c *Cray) Entry(e bool) {}
+func (c *Gogol) Entry(e bool) {}
 
 func main() {
 	flag.Parse()
 
-	img := crayola.NewImage("images/crayola.bmp")
+	img := gogol.NewImage("images/crayola.bmp")
 	sprite := img.Sprite(16, 16)
 	seq := sprite.Sequence(0, -1)
 
-	handler := &Cray{seq: seq, title: *title, scale: 1}
-	crayola.Init(handler)
+	handler := &Gogol{seq: seq, scale: 1}
+	gogol.Init(handler)
 }
