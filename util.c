@@ -1,5 +1,5 @@
 /*
- * crayola
+ * gogol
  * util.c
  */
 #include <GL/gl.h>

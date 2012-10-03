@@ -19,14 +19,14 @@
 package gogol
 
 //
-// #include "crayola.h"
+// #include "gogol.h"
 // #include <GL/glut.h>
 // #cgo LDFLAGS: -lglut -lGL
 //
 import "C"
 
 import (
-	"crayola/image"
+	"gogol/image"
 	"time"
 )
 
@@ -35,6 +35,7 @@ var (
 	lastTick = 0
 )
 
+// Mouse can be either MouseL, MouseR or MouseR.
 type Mouse int
 
 const (
@@ -61,6 +62,12 @@ type Handler interface {
 	// This is the recommend place to perform all drawing
 	// operations.
 	Display(delta time.Duration)
+
+	// DisplayPost is called on every frame, after Display,
+	// and after any post-processing effects have been applied.
+	// This function is useful for drawing UI elements which
+	// shouldn't be affected by image filters.
+	DisplayPost()
 
 	// Keyboard is called whenever a key is pressed or released.
 	// The key is passed as an argument, as well as the state
@@ -173,6 +180,11 @@ func goDisplay(now C.int) {
 	delta := int(now) - lastTick
 	handler.Display(time.Millisecond * time.Duration(delta))
 	lastTick = int(now)
+}
+
+//export goDisplayPost
+func goDisplayPost(now C.int) {
+	handler.DisplayPost()
 }
 
 //export goKeyboard

@@ -1,28 +1,30 @@
 package main
 
 import (
-	"crayola"
-	"crayola/image"
 	"flag"
+	"gogol"
+	"gogol/image"
 	"os"
 	"time"
 )
 
 var (
-	title = flag.String("title", "crayola", "window title")
+	title = flag.String("title", "gogol", "window title")
 )
 
 // Speed of play
 var speed float64 = 7
 
 type Gogol struct {
-	width        int
-	height       int
-	seq          *image.Sequence
-	title        string
-	scale        float32
-	isMouseLDown bool
-	isMouseRDown bool
+	gogol.Handler
+
+	width          int
+	height         int
+	seq            *image.Sequence
+	title          string
+	scale          float32
+	isMouseLDown   bool
+	isMouseRDown   bool
 }
 
 func (c *Gogol) Ready() {
@@ -92,15 +94,17 @@ func (c *Gogol) Mouse(b gogol.Mouse, isDown bool, x, y int) {
 	}
 }
 
-func (c *Gogol) Entry(e bool) {}
-
 func main() {
 	flag.Parse()
 
-	img := gogol.NewImage("images/crayola.bmp")
+	img := gogol.NewImage("images/gogol.bmp")
 	sprite := img.Sprite(16, 16)
 	seq := sprite.Sequence(0, -1)
 
-	handler := &Gogol{seq: seq, scale: 1}
+	handler := &Gogol{
+		Handler: &gogol.DefaultHandler{*title},
+		seq:     seq,
+		scale:   1,
+	}
 	gogol.Init(handler)
 }

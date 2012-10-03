@@ -1,6 +1,6 @@
 
 
-  CRAYOLA
+  GOGOL
 
 
     a bitmap drawing & animation library for Go.
@@ -8,20 +8,20 @@
 
 . synopsis
 
-    crayola's purpose is to provide a simple interface
+    gogol's purpose is to provide a simple interface
     for drawing bitmap graphics on the screen, as well
     as handling mouse & keyboard events.
 
-    crayola is especially well suited for building 2D
+    gogol is especially well suited for building 2D
     games.
 
 . installation
 
-    go get github.com/cloudhead/crayola
+    go get github.com/cloudhead/gogol
 
 . documentation
 
-    go doc crayola
+    go doc gogol
 
 . examples
 

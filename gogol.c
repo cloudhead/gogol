@@ -1,13 +1,13 @@
 /*
- * crayola
- * crayola.c
+ * gogol
+ * gogol.c
  */
 #include <GL/gl.h>
 #include <GL/glext.h>
 #include <GL/glut.h>
 #include <stdio.h>
 
-#include "crayola.h"
+#include "gogol.h"
 
 /* Window width & height */
 int w = 640, h = 640;
@@ -90,6 +90,10 @@ void display(void)
 
 	glUseProgram(0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	/* Switch to user-land, now that we've deactivated
+	 * the shader program. */
+	goDisplayPost();
 
 	glutSwapBuffers();
 }
