@@ -26,7 +26,7 @@ package gogol
 import "C"
 
 import (
-	"gogol/image"
+	"github.com/cloudhead/gogol/image"
 	"time"
 )
 

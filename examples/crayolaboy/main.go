@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	"gogol"
-	"gogol/image"
+	"github.com/cloudhead/gogol"
+	"github.com/cloudhead/gogol/image"
 	"os"
 	"time"
 )
