@@ -1,27 +1,18 @@
 package image
 
-//
-// #include <GL/gl.h>
-// #include "texture.h"
-// #cgo LDFLAGS: -lglut -lGL
-//
-import "C"
-
 import (
+	"github.com/go-gl/gl"
+	"github.com/go-gl/glfw"
 	"image"
 	"log"
-	"os"
-	"unsafe"
 )
 
-// Register bmp format
-import _ "code.google.com/p/go.image/bmp"
-
 type Image struct {
-	image.Image
+	*glfw.Image
+
+	Texture  gl.Texture
 	FilePath string
 	W, H     int
-	id       C.uint
 }
 
 var cache = map[string]*Image{}
@@ -32,26 +23,16 @@ func New(path string) *Image {
 		return cache[path]
 	}
 
-	file, err := os.Open(path)
+	i, err := glfw.ReadImage(path, glfw.OriginUlBit|glfw.NoRescaleBit)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("image %s: failed to read: %s", path, err)
 	}
-
-	m, _, err := image.Decode(file)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if _, ok := m.(*image.RGBA); !ok {
-		log.Fatalf("image %s: invalid format, must be RGBA", path)
-	}
-	bounds := m.Bounds()
 
 	img := &Image{
-		Image:    m,
+		Image:    i,
 		FilePath: path,
-		W:        bounds.Max.X,
-		H:        bounds.Max.Y,
+		W:        i.Width(),
+		H:        i.Height(),
 	}
 	cache[path] = img
 
@@ -59,8 +40,19 @@ func New(path string) *Image {
 }
 
 func (img *Image) Gen() {
-	ptr := unsafe.Pointer(&img.Image.(*image.RGBA).Pix[0])
-	img.id = C.textureGen(C.int(img.W), C.int(img.H), (*C.uint)(ptr))
+	texture := gl.GenTexture()
+	texture.Bind(gl.TEXTURE_2D)
+
+	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
+	gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+	gl.TexEnvf(gl.TEXTURE_ENV, gl.TEXTURE_ENV_MODE, gl.MODULATE)
+
+	if !img.LoadTextureImage2D(0x0) {
+		log.Fatalf("image %s: failed to load texture", img.FilePath)
+	}
+	img.Texture = texture
 }
 
 // Draw is DrawAt(0, 0)
@@ -87,14 +79,45 @@ func (img *Image) DrawRectangleAt(rect image.Rectangle, x, y int) {
 // DrawRectAt draws a portion of the image specified w
 // at the specified position.
 func (img *Image) DrawRectAt(rx, ry, rw, rh, x, y int) {
-	C.textureDraw(img.id,
-		C.int(img.W), C.int(img.H),
-		C.int(rx), C.int(ry),
-		C.int(rw), C.int(rh),
-		C.float(x), C.float(y))
+	img.drawRectAt(float64(img.W), float64(img.H), float64(rx), float64(ry), float64(rw), float64(rh), float64(x), float64(y))
 }
 
 // Sprite creates a sprite from the image, with the specified grid.
 func (img *Image) Sprite(w, h int) *Sprite {
 	return NewSprite(img, w, h)
+}
+
+func (img *Image) drawRectAt(tw, th, x, y, w, h, sx, sy float64) {
+	gl.PushMatrix()
+
+	gl.MatrixMode(gl.MODELVIEW)
+	gl.Enable(gl.TEXTURE_2D)
+	gl.Enable(gl.BLEND)
+	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+
+	img.Texture.Bind(gl.TEXTURE_2D)
+
+	rx, ry := x/tw, y/th
+	rw, rh := w/tw, h/th
+
+	gl.Begin(gl.QUADS)
+
+	gl.TexCoord2d(rx, ry)
+	gl.Vertex2d(sx, sy)
+
+	gl.TexCoord2d(rx+rw, ry)
+	gl.Vertex2d(sx+w, sy)
+
+	gl.TexCoord2d(rx+rw, (ry + rh))
+	gl.Vertex2d(sx+w, sy+h)
+
+	gl.TexCoord2d(rx, (ry + rh))
+	gl.Vertex2d(sx, sy+h)
+
+	gl.End()
+
+	gl.Disable(gl.TEXTURE_2D)
+	gl.Disable(gl.BLEND)
+
+	gl.PopMatrix()
 }

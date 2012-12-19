@@ -18,19 +18,22 @@ var speed float64 = 7
 type Gogol struct {
 	gogol.Handler
 
-	width          int
-	height         int
-	seq            *image.Sequence
-	title          string
-	scale          float32
-	isMouseLDown   bool
-	isMouseRDown   bool
+	width        int
+	height       int
+	seq          *image.Sequence
+	title        string
+	scale        float32
+	isMouseLDown bool
+	isMouseRDown bool
 }
 
 func (c *Gogol) Ready() {
+	img := gogol.NewImage("images/gogol.tga")
+	sprite := img.Sprite(16, 16)
+	c.seq = sprite.Sequence(0, -1)
 	c.seq.Play(speed)
+
 	gogol.HideCursor()
-	gogol.FullScreen()
 }
 
 func (c *Gogol) Reshape(w, h int) {
@@ -85,7 +88,7 @@ func (c *Gogol) Motion(x, y int) {
 	}
 }
 
-func (c *Gogol) Mouse(b gogol.Mouse, isDown bool, x, y int) {
+func (c *Gogol) Mouse(b gogol.Mouse, isDown bool) {
 	switch b {
 	case gogol.MouseL:
 		c.isMouseLDown = isDown
@@ -97,13 +100,8 @@ func (c *Gogol) Mouse(b gogol.Mouse, isDown bool, x, y int) {
 func main() {
 	flag.Parse()
 
-	img := gogol.NewImage("images/gogol.bmp")
-	sprite := img.Sprite(16, 16)
-	seq := sprite.Sequence(0, -1)
-
 	handler := &Gogol{
 		Handler: &gogol.DefaultHandler{*title},
-		seq:     seq,
 		scale:   1,
 	}
 	gogol.Init(handler)
