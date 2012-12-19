@@ -210,8 +210,6 @@ func goReshape(w, h int) {
 	// gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, winWidth, winHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, nil)
 	// fbo.Unbind(gl.TEXTURE_2D)
 
-	glfw.SwapBuffers()
-
 	handler.Reshape(w, h)
 }
 
