@@ -123,7 +123,7 @@ func Init(h Handler) {
 
 	for {
 		now := glfw.Time()
-		delta := time.Duration(now - lastTick)
+		delta := time.Duration((now - lastTick) * 1e3)
 		lastTick = now
 
 		render(delta)
