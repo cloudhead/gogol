@@ -1,10 +1,6 @@
 package gogol
 
-//
-// #include <GL/glut.h>
-// #cgo LDFLAGS: -lglut -lGL
-//
-import "C"
+import "github.com/go-gl/glfw"
 
 type Key uint
 
@@ -19,26 +15,26 @@ const (
 	KeyReturn        = keyChar | 13
 	KeyEsc           = keyChar | 27
 	KeySpace         = keyChar | 32
-	KeyLeft          = keySpecial | C.GLUT_KEY_LEFT
-	KeyUp            = keySpecial | C.GLUT_KEY_UP
-	KeyRight         = keySpecial | C.GLUT_KEY_RIGHT
-	KeyDown          = keySpecial | C.GLUT_KEY_DOWN
+	KeyLeft          = keySpecial | glfw.KeyLeft
+	KeyUp            = keySpecial | glfw.KeyUp
+	KeyRight         = keySpecial | glfw.KeyRight
+	KeyDown          = keySpecial | glfw.KeyDown
 	KeyShiftL        = keySpecial | 112
 	KeyShiftR        = keySpecial | 113
 	KeyCtrlL         = keySpecial | 114
 	KeyCtrlR         = keySpecial | 115
 	KeyAltL          = keySpecial | 116
 	KeyAltR          = keySpecial | 117
-	KeyF1            = keySpecial | C.GLUT_KEY_F1
-	KeyF2            = keySpecial | C.GLUT_KEY_F2
-	KeyF3            = keySpecial | C.GLUT_KEY_F3
-	KeyF4            = keySpecial | C.GLUT_KEY_F4
-	KeyF5            = keySpecial | C.GLUT_KEY_F5
-	KeyF6            = keySpecial | C.GLUT_KEY_F6
-	KeyF7            = keySpecial | C.GLUT_KEY_F7
-	KeyF8            = keySpecial | C.GLUT_KEY_F8
-	KeyF9            = keySpecial | C.GLUT_KEY_F9
-	KeyF10           = keySpecial | C.GLUT_KEY_F10
-	KeyF11           = keySpecial | C.GLUT_KEY_F11
-	KeyF12           = keySpecial | C.GLUT_KEY_F12
+	KeyF1            = keySpecial | glfw.KeyF1
+	KeyF2            = keySpecial | glfw.KeyF2
+	KeyF3            = keySpecial | glfw.KeyF3
+	KeyF4            = keySpecial | glfw.KeyF4
+	KeyF5            = keySpecial | glfw.KeyF5
+	KeyF6            = keySpecial | glfw.KeyF6
+	KeyF7            = keySpecial | glfw.KeyF7
+	KeyF8            = keySpecial | glfw.KeyF8
+	KeyF9            = keySpecial | glfw.KeyF9
+	KeyF10           = keySpecial | glfw.KeyF10
+	KeyF11           = keySpecial | glfw.KeyF11
+	KeyF12           = keySpecial | glfw.KeyF12
 )

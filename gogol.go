@@ -18,21 +18,19 @@
 //
 package gogol
 
-//
-// #include "gogol.h"
-// #include <GL/glut.h>
-// #cgo LDFLAGS: -lglut -lGL
-//
-import "C"
-
 import (
+	"github.com/go-gl/gl"
+	"github.com/go-gl/glfw"
 	"gogol/image"
+	"log"
 	"time"
 )
 
 var (
-	images   = []*image.Image{}
-	lastTick = 0
+	images    = []*image.Image{}
+	lastTick  = 0
+	winWidth  = 0
+	winHeight = 0
 )
 
 // Mouse can be either MouseL, MouseR or MouseR.
@@ -75,7 +73,7 @@ type Handler interface {
 	Keyboard(k Key, isDown bool)
 
 	// Mouse is called whenever the mouse is clicked.
-	Mouse(button Mouse, isDown bool, x, y int)
+	Mouse(button Mouse, isDown bool)
 
 	// Motion is called whenever the mouse is moved, with the x
 	// and y position of the cursor.
@@ -94,43 +92,83 @@ type Handler interface {
 // with the specified title.
 func Init(h Handler) {
 	handler = h
-	C.init(C.CString(handler.Title()))
+
+	if err := glfw.Init(); err != nil {
+		log.Fatal(err)
+	}
+	defer glfw.Terminate()
+
+	if err := glfw.OpenWindow(0, 0, 0, 0, 0, 0, 0, 0, glfw.Windowed); err != nil {
+		log.Fatal(err)
+	}
+	defer glfw.CloseWindow()
+
+	glfw.SetSwapInterval(1) // Vsync
+	glfw.SetWindowTitle(h.Title())
+	glfw.SetKeyCallback(goKeyboard)
+	glfw.SetWindowSizeCallback(goReshape)
+	glfw.SetMouseButtonCallback(goMouse)
+	glfw.SetMousePosCallback(goMotion)
+
+	gl.Disable(gl.DEPTH_TEST)
+	gl.Disable(gl.LIGHTING)
+
+	handler.Ready()
+
+	for _, img := range images {
+		img.Gen()
+	}
+
+	lastTick := glfw.Time()
+
+	for {
+		now := glfw.Time()
+		delta := time.Duration((now - lastTick) * 1e9)
+		lastTick = now
+
+		render(delta)
+	}
 }
 
 // Translate moves the drawing position to the specified coordinates.
 // Subsequent drawing operations will be relative to these coordinates.
 func Translate(x, y float32) {
-	C.glTranslatef(C.GLfloat(x), C.GLfloat(y), 0)
+	gl.Translatef(x, y, 0)
 }
 
 // Scale scales the view by x and y.
 func Scale(x, y float32) {
 	if x > 0 && y > 0 {
-		C.glScalef(C.GLfloat(x), C.GLfloat(y), 1.0)
+		gl.Scalef(x, y, 1.0)
 	}
+}
+
+// WindowSize returns the current window width & height
+func WindowSize() (int, int) {
+	return winWidth, winHeight
 }
 
 // AdjustHSL adjusts the scene's hue, saturation & lightness.
 // Values can range between 0 and 1.
 func AdjustHSL(h, s, l float32) {
-	C.adjustHSL(C.float(h), C.float(s), C.float(l))
+	panic("not implemented")
 }
 
 // AdjustExp adjusts the scene's exposure. The first parameter
 // specifies the exposure (default is 1.0), the second specifies
 // the maximum brightness.
 func AdjustExp(exp, max float32) {
-	C.adjustExp(C.float(exp), C.float(max))
+	panic("not implemented")
 }
 
 // ShowCursor shows the mouse cursor.
-func ShowCursor() { C.glutSetCursor(C.GLUT_CURSOR_INHERIT) }
+func ShowCursor() { glfw.Enable(glfw.MouseCursor) }
 
 // HideCursor hides the mouse cursor.
-func HideCursor() { C.glutSetCursor(C.GLUT_CURSOR_NONE) }
+func HideCursor() { glfw.Disable(glfw.MouseCursor) }
 
 // FullScreen enables full-screen mode.
-func FullScreen() { C.glutFullScreen() }
+func FullScreen() { panic("not implemented") }
 
 // NewImage creates a *image.Image from the specified path.
 func NewImage(path string) *image.Image {
@@ -153,92 +191,85 @@ func NewSprite(img *image.Image, w, h int) *image.Sprite {
 	return image.NewSprite(img, w, h)
 }
 
-//export goReady
-//
-// goReady is called right before 'glutMainLoop'.
-//
-func goReady() {
-	for _, img := range images {
-		img.Gen()
-	}
-	handler.Ready()
-}
-
-//export goReshape
-//
 // goReshape is called whenever the window is resized.
-//
-func goReshape(w, h C.int) {
-	handler.Reshape(int(w), int(h))
+func goReshape(w, h int) {
+	winWidth, winHeight = w, h
+
+	gl.ClearColor(1, 1, 1, 0)
+	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+
+	gl.Viewport(0, 0, w, h)
+	gl.MatrixMode(gl.PROJECTION)
+	gl.LoadIdentity()
+	gl.Ortho(0.0, float64(w), float64(h), 0, -1, 1)
+
+	gl.MatrixMode(gl.MODELVIEW)
+	gl.LoadIdentity()
+
+	// fbo.Bind(gl.TEXTURE_2D)
+	// gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, winWidth, winHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, nil)
+	// fbo.Unbind(gl.TEXTURE_2D)
+
+	handler.Reshape(w, h)
 }
 
-//export goDisplay
-//
 // goDisplay is called when the view is about to be redrawn.
-//
-func goDisplay(now C.int) {
-	delta := int(now) - lastTick
-	handler.Display(time.Millisecond * time.Duration(delta))
-	lastTick = int(now)
+func goDisplay(delta time.Duration) {
+	handler.Display(delta)
 }
 
-//export goDisplayPost
-func goDisplayPost(now C.int) {
+func goDisplayPost(now int) {
 	handler.DisplayPost()
 }
 
-//export goKeyboard
-//
 // goKeyboard is called when an ordinary key is pressed.
-//
-func goKeyboard(key C.uchar, _, _ C.int) {
+func goKeyboard(key, state int) {
 	handler.Keyboard(Key(key), true)
 }
 
-//export goKeyboardUp
-//
 // goKeyboardUp is called when an ordinary key is released.
-//
-func goKeyboardUp(key C.uchar, _, _ C.int) {
+func goKeyboardUp(key byte, _, _ int) {
 	handler.Keyboard(Key(key), false)
 }
 
-//export goSpecial
-//
 // goSpecial is called when a special key is pressed.
-//
-func goSpecial(k, _, _ C.int) {
+func goSpecial(k, _, _ int) {
 	handler.Keyboard(Key(k|keySpecial), true)
 }
 
-//export goSpecialUp
-//
 // goSpecialUp is called when a special key is released.
-//
-func goSpecialUp(k, _, _ C.int) {
+func goSpecialUp(k, _, _ int) {
 	handler.Keyboard(Key(k|keySpecial), false)
 }
 
-//export goMouse
-//
 // goMouse is called when a mouse button is pressed or released.
-//
-func goMouse(button, state, x, y C.int) {
-	handler.Mouse(Mouse(button), state == 0, int(x), int(y))
+func goMouse(button, state int) {
+	handler.Mouse(Mouse(button), state == 0)
 }
 
-//export goMotion
-//
 // goMotion is called when the mouse is moved.
-//
-func goMotion(x, y C.int) {
+func goMotion(x, y int) {
 	handler.Motion(int(x), int(y))
 }
 
-//export goEntry
-//
 // goEntry is called when the mouse enters/exits the view.
-//
-func goEntry(e C.int) {
+func goEntry(e int) {
 	handler.Entry(e == 1)
+}
+
+func render(delta time.Duration) {
+	gl.ClearColor(1, 1, 1, 0)
+	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+
+	gl.Viewport(0, 0, winWidth, winHeight)
+	gl.MatrixMode(gl.PROJECTION)
+	gl.LoadIdentity()
+	gl.Ortho(0.0, float64(winWidth), float64(winHeight), 0, -1, 1)
+
+	gl.MatrixMode(gl.MODELVIEW)
+	gl.LoadIdentity()
+
+	goDisplay(delta)
+
+	glfw.SwapBuffers()
 }
