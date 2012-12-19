@@ -123,7 +123,7 @@ func Init(h Handler) {
 
 	for {
 		now := glfw.Time()
-		delta := time.Duration((now - lastTick) * 1e3)
+		delta := time.Duration((now - lastTick) * 1e9)
 		lastTick = now
 
 		render(delta)
@@ -215,7 +215,7 @@ func goReshape(w, h int) {
 
 // goDisplay is called when the view is about to be redrawn.
 func goDisplay(delta time.Duration) {
-	handler.Display(time.Millisecond * delta)
+	handler.Display(delta)
 }
 
 func goDisplayPost(now int) {
